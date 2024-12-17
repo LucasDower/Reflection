@@ -1,0 +1,9 @@
+[submodule "External/raylib"]
+	path = Examples/AsteroidGame/External/raylib
+	url = https://github.com/raysan5/raylib
+[submodule "External/imgui"]
+	path = Examples/AsteroidGame/External/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "External/raylib-extras"]
+	path = Examples/AsteroidGame/External/raylib-extras
+	url = https://github.com/raylib-extras/rlImGui
