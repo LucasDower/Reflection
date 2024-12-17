@@ -11,6 +11,10 @@
 		{ \
 			return Self::StaticGetProperties(); \
 		} \
+		static const char* StaticGetName() \
+		{ \
+			return #Self; \
+		} \
 		virtual std::string GetName() override \
 		{ \
 			return #Self; \
@@ -19,13 +23,17 @@
 class RClass
 {
 public:
-	/*
-	static std::string StaticGetName()
+	bool IsA(const char* ClassName)
 	{
-		return "RClass";
-	};
-	*/
-	
+		return GetName() == ClassName;
+	}
+
+	template <typename T>
+	bool IsA()
+	{
+		return T::StaticGetName() == GetName();
+	}
+
 	virtual std::string GetName()
 	{
 		return "RClass";
