@@ -1,3 +1,5 @@
+![](Resources/reflection.gif)
+
 # Reflection
 
 This is a prototype reflection system built for C++ that supports member variable introspection. It is header-only and requires no extra external tooling.
