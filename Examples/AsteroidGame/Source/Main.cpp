@@ -1,137 +1,115 @@
-#include "raylib.h"
-#include "raymath.h"
-
 #include <memory>
 #include <functional>
+#include <vector>
+
+#include "raylib.h"
+#include "raymath.h"
 
 #include "imgui.h"
 #include "rlImGui.h"
 
-#include "RClass.hpp"
+#include "Reflection.hpp"
 
-#include "ImGuiIntegration.hpp"
-
-class RVector2f : public RClass
+class RPlayer : public RObject
 {
-    REFLECTED_CLASS(RVector2f, RClass)
+    REFLECTION_CLASS_BEGIN(RPlayer, RObject)
+        REFLECTION_PROPERTIES_BEGIN
+            REFLECTION_PROPERTY(m_Health)
+            REFLECTION_PROPERTY(m_Mana)
+            REFLECTION_PROPERTY(m_Level)
+            REFLECTION_PROPERTY(m_Experience)
+        REFLECTION_PROPERTIES_END
+    REFLECTION_CLASS_END
 
 public:
-    float m_X;
-    float m_Y;
-
-    BEGIN_REFLECTED_PROPERTIES
-        REFLECTED_PROPERTY(m_X)
-        REFLECTED_PROPERTY(m_Y)
-    END_REFLECTED_PROPERTIES
+    int m_Health = 100;
+    int m_Mana = 200;
+    int m_Level = 0;
+    float m_Experience = 0.0f;
 };
 
-class RAsteroid : public RClass
+void ShowProperty(const size_t Index, RObject& Object, const RProperty& Property)
 {
-    REFLECTED_CLASS(RAsteroid, RClass)
+    const RClass& Class = Object.GetClass();
 
-public:
-    RVector2f Position;
-    RVector2f Velocity;
-    float Size;
+    ImGui::Text(Property.GetName().c_str());
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), RProperty::StaticGetDataTypeString(Property.GetType()).c_str());
 
-    BEGIN_REFLECTED_PROPERTIES
-        REFLECTED_PROPERTY(Position)
-        REFLECTED_PROPERTY(Velocity)
-        REFLECTED_PROPERTY(Size)
-    END_REFLECTED_PROPERTIES
-};
+    ImGui::Indent(16.0f);
+    {
+        ImGui::PushID(Index);
+        switch (Property.GetType())
+        {
+            case RProperty::Type::Int:
+            {
+                ImGui::InputInt("##", &Class.GetMutablePropertyValueChecked<int>(Object, Property));
+                break;
+            }
+            case RProperty::Type::Float:
+            {
+                ImGui::InputFloat("##", &Class.GetMutablePropertyValueChecked<float>(Object, Property));
+                break;
+            }
+            default:
+            {
+                ImGui::TextDisabled("Unsupported");
+            }
+        }
+        ImGui::PopID();
+    }
+    ImGui::Unindent(16.0f);
+}
 
-class RWorld : public RClass
+void ShowProperties(RObject& Object)
 {
-    REFLECTED_CLASS(RWorld, RClass)
+    const RClass& Class = Object.GetClass();
 
-public:
-    std::vector<std::shared_ptr<RAsteroid>> Asteroids;
+    std::vector<std::string> Ancestors;
+    const RClass* Parent = Class.GetParent();
+    while (Parent)
+    {
+        Ancestors.push_back(Parent->GetName());
+        Parent = Parent->GetParent();
+    }
 
-    BEGIN_REFLECTED_PROPERTIES
-        REFLECTED_PROPERTY(Asteroids)
-    END_REFLECTED_PROPERTIES
-};
+    for (auto It = Ancestors.rbegin(); It != Ancestors.rend(); ++It) {
+        ImGui::Text(It->c_str());
+        ImGui::Indent(16.0f);
+    }
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), Class.GetName().c_str());
+    ImGui::Unindent(16.0f * Ancestors.size());
+
+    ImGui::Separator();
+
+    double T = 0.0;
+
+    for (size_t PropertyIndex = 0; PropertyIndex < Class.GetProperties().size(); ++PropertyIndex)
+    {
+        const RProperty& Property = Class.GetProperties()[PropertyIndex];
+        ShowProperty(PropertyIndex, Object, Property);
+    }
+}
 
 int main(void)
 {
+    std::shared_ptr<RPlayer> Player = std::make_shared<RPlayer>();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
     InitWindow(1920, 1080, "MyProject");
     SetTargetFPS(60);
     rlImGuiSetup(true);
 
-    std::shared_ptr<RWorld> World = std::make_shared<RWorld>();
-
-    for (size_t Index = 0; Index < 10; ++Index)
-    {
-        std::shared_ptr<RAsteroid> Asteroid = std::make_shared<RAsteroid>();
-        Asteroid->Position.m_X = GetRandomValue(0, GetScreenWidth());
-        Asteroid->Position.m_Y = GetRandomValue(0, GetScreenHeight());
-        Asteroid->Velocity.m_X = GetRandomValue(-100, 100);
-        Asteroid->Velocity.m_Y = GetRandomValue(-100, 100);
-        Asteroid->Size = GetRandomValue(8, 32);
-
-        World->Asteroids.push_back(Asteroid);
-    };
-
-    size_t SelectedAsteroidIndex = 0;
-
     while (!WindowShouldClose())
     {
         BeginDrawing();
         ClearBackground(DARKGRAY);
 
-        const float DeltaTime = GetFrameTime();
-
-        for (size_t Index = 0; Index < World->Asteroids.size(); ++Index)
-        {
-            std::shared_ptr<RAsteroid> Asteroid = World->Asteroids[Index];
-         
-            Asteroid->Position.m_X += Asteroid->Velocity.m_X * DeltaTime;
-            Asteroid->Position.m_Y += Asteroid->Velocity.m_Y * DeltaTime;
-
-            Asteroid->Position.m_X = std::fmod(Asteroid->Position.m_X, (float)GetScreenWidth());
-            Asteroid->Position.m_Y = std::fmod(Asteroid->Position.m_Y, (float)GetScreenHeight());
-        }
-
-        const Vector2 MousePos = GetMousePosition();
-
-        for (size_t Index = 0; Index < World->Asteroids.size(); ++Index)
-        {
-            std::shared_ptr<RAsteroid> Asteroid = World->Asteroids[Index];
-            DrawCircle(Asteroid->Position.m_X, Asteroid->Position.m_Y, Asteroid->Size, RED);
-
-            Rectangle AsteroidBounds = { Asteroid->Position.m_X - Asteroid->Size, Asteroid->Position.m_Y - Asteroid->Size, Asteroid->Size * 2, Asteroid->Size * 2 };
-
-            if (MousePos.x >= AsteroidBounds.x && MousePos.x <= (AsteroidBounds.x + AsteroidBounds.width) && MousePos.y >= AsteroidBounds.y && MousePos.y <= (AsteroidBounds.y + AsteroidBounds.height))
-            {
-                DrawRectangleLinesEx(AsteroidBounds, 1.0f, WHITE);
-
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-                {
-                    SelectedAsteroidIndex = Index;
-                }
-            }
-        }
-
-        if (SelectedAsteroidIndex != -1)
-        {
-            std::shared_ptr<RAsteroid> Asteroid = World->Asteroids[SelectedAsteroidIndex];
-            DrawRectangleLines(Asteroid->Position.m_X - Asteroid->Size, Asteroid->Position.m_Y - Asteroid->Size, Asteroid->Size*2, Asteroid->Size*2, YELLOW);
-        }
-
         rlImGuiBegin();
         {
-            ImGui::Begin("Object");
-            {
-                ImGui::Reflection::ReflectedClass(World.get());
-            }
-            ImGui::End();
-
             ImGui::Begin("Details");
             {
-                ImGui::Reflection::ReflectedClass(World->Asteroids[SelectedAsteroidIndex].get());
+                ShowProperties(*Player);
             }
             ImGui::End();
         }

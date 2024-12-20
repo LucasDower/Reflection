@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(MyProject
     Source/Main.cpp
-    Source/ImGuiIntegration.cpp
+    
 )
 target_include_directories(MyProject PRIVATE ../../Include)
 

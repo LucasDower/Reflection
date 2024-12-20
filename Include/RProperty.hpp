@@ -1,116 +1,182 @@
 #pragma once
 
+#include "RCore.hpp"
+
 #include <string>
-#include <vector>
+#include <stdint.h>
 
-enum class EDataType
-{
-	UnsignedChar,
-	Int,
-	Boolean,
-	Float,
-	RObject,
-	RObjectPointer,
-	RObjectVector,
-};
-
-struct RProperty
-{
-	std::string Name;
-	EDataType Type;
-	size_t Offset;
-	size_t Size;
-};
-
-class RClassProperties
+class RProperty final
 {
 public:
-	void Add(const RProperty& Prop)
+	enum class Type
 	{
-		m_Variables.push_back(Prop);
+		Bool,
+		Char,
+		Short,
+		Int,
+		Long,
+		LongLong,
+		UnsignedChar,
+		UnsignedShort,
+		UnsignedInt,
+		UnsignedLong,
+		UnsignedLongLong,
+		Float,
+		Double,
+	};
+
+	template <typename T>
+	static constexpr Type StaticGetDataType()
+	{
+		if constexpr (std::is_same<T, bool>())
+		{
+			return Type::Bool;
+		}
+		else if constexpr (std::is_same<T, char>())
+		{
+			return Type::Char;
+		}
+		else if constexpr (std::is_same<T, short>())
+		{
+			return Type::Short;
+		}
+		else if constexpr (std::is_same<T, int>())
+		{
+			return Type::Int;
+		}
+		else if constexpr (std::is_same<T, long>())
+		{
+			return Type::Long;
+		}
+		else if constexpr (std::is_same<T, long long>())
+		{
+			return Type::LongLong;
+		}
+		else if constexpr (std::is_same<T, unsigned char>())
+		{
+			return Type::UnsignedChar;
+		}
+		else if constexpr (std::is_same<T, unsigned short>())
+		{
+			return Type::UnsignedShort;
+		}
+		else if constexpr (std::is_same<T, unsigned int>())
+		{
+			return Type::UnsignedInt;
+		}
+		else if constexpr (std::is_same<T, unsigned long>())
+		{
+			return Type::UnsignedLong;
+		}
+		else if constexpr (std::is_same<T, unsigned long long>())
+		{
+			return Type::UnsignedLongLong;
+		}
+		else if constexpr (std::is_same<T, float>())
+		{
+			return Type::Float;
+		}
+		else if constexpr (std::is_same<T, double>())
+		{
+			return Type::Double;
+		}
+		else
+		{
+			static_assert(std::is_same_v<T, void>, "Unsupported type for reflection!");
+		}
 	}
 
-	void Add(const char* VariableName, const EDataType Type, const size_t Offset, const size_t Size)
+	static std::string StaticGetDataTypeString(const Type InType)
 	{
-		RProperty Property;
-		Property.Name = VariableName;
-		Property.Type = Type;
-		Property.Offset = Offset;
-		Property.Size = Size;
-		m_Variables.push_back(Property);
+		if (InType == Type::Bool)
+		{
+			return "Bool";
+		}
+		else if (InType == Type::Char)
+		{
+			return "Char";
+		}
+		else if (InType == Type::Short)
+		{
+			return "Short";
+		}
+		else if (InType == Type::Int)
+		{
+			return "Int";
+		}
+		else if (InType == Type::Long)
+		{
+			return "Long";
+		}
+		else if (InType == Type::LongLong)
+		{
+			return "Long";
+		}
+		else if (InType == Type::UnsignedChar)
+		{
+			return "UnsignedChar";
+		}
+		else if (InType == Type::UnsignedShort)
+		{
+			return "UnsignedShort";
+		}
+		else if (InType == Type::UnsignedInt)
+		{
+			return "UnsignedInt";
+		}
+		else if (InType == Type::UnsignedLong)
+		{
+			return "UnsignedLong";
+		}
+		else if (InType == Type::UnsignedLongLong)
+		{
+			return "UnsignedLong";
+		}
+		else if (InType == Type::Float)
+		{
+			return "Float";
+		}
+		else if (InType == Type::Double)
+		{
+			return "Double";
+		}
+		else
+		{
+			REFLECTION_ASSERT(false);
+			return "Invalid";
+		}
 	}
 
-	bool IsEmpty() const
+	RProperty(const std::string InName, const Type InType, const size_t InSize, const size_t InOffset)
+		: m_Name(InName)
+		, m_Type(InType)
+		, m_Size(InSize)
+		, m_Offset(InOffset)
 	{
-		return m_Variables.size() == 0;
 	}
 
-	auto begin() { return m_Variables.begin(); }
-	auto end() { return m_Variables.end(); }
-	auto begin() const { return m_Variables.begin(); }
-	auto end() const { return m_Variables.end(); }
+	const std::string& GetName() const
+	{
+		return m_Name;
+	}
+
+	Type GetType() const
+	{
+		return m_Type;
+	}
+
+	size_t GetOffset() const
+	{
+		return m_Offset;
+	}
+
+	bool operator==(const RProperty& Other) const {
+		return m_Name == Other.m_Name && m_Type == Other.m_Type && m_Size == Other.m_Size && m_Offset == Other.m_Offset;
+	}
 
 private:
-	std::vector<RProperty> m_Variables;
+	std::string m_Name;
+	Type m_Type;
+	size_t m_Size;
+	size_t m_Offset;
 };
-
-class RClass;
-
-template <typename T>
-constexpr EDataType GetDataType()
-{
-	if constexpr (std::is_same<T, unsigned char>())
-	{
-		return EDataType::UnsignedChar;
-	}
-	else if constexpr (std::is_same<T, int>())
-	{
-		return EDataType::Int;
-	}
-	else if constexpr (std::is_same<T, bool>())
-	{
-		return EDataType::Boolean;
-	}
-	else if constexpr (std::is_same<T, float>())
-	{
-		return EDataType::Float;
-	}
-	else if constexpr (std::is_base_of<RClass, T>())
-	{
-		return EDataType::RObject;
-	}
-	else if constexpr (std::is_base_of<RClass, std::remove_pointer_t<T>>())
-	{
-		return EDataType::RObjectPointer;
-	}
-	else if constexpr (std::is_same<T, std::vector<typename T::value_type>>())
-	{
-		return EDataType::RObjectVector;
-	}
-	else
-	{
-		static_assert(std::is_same_v<T, void>, "Unsupported type for reflection!");
-	}
-}
-
-#define OFFSET_OF(type, member) ((size_t) &(((type *)0)->member))
-
-
-#define BEGIN_REFLECTED_PROPERTIES \
-	static const RClassProperties& StaticGetProperties() \
-	{ \
-		static RClassProperties RC; \
-		if (RC.IsEmpty()) \
-		{ \
-			for (const RProperty& SuperProp : SUPER::StaticGetProperties()) \
-			{ \
-				RC.Add(SuperProp); \
-			} \
-
-#define REFLECTED_PROPERTY(VariableName) \
-	RC.Add(#VariableName, GetDataType<decltype(VariableName)>(), OFFSET_OF(SELF, VariableName), sizeof(VariableName)); \
-
-#define END_REFLECTED_PROPERTIES \
-		} \
-		return RC; \
-	}
