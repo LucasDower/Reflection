@@ -28,6 +28,18 @@ public:
     float m_Experience = 0.0f;
 };
 
+class RSubPlayer : public RObject
+{
+    REFLECTION_CLASS_BEGIN(RSubPlayer, RPlayer)
+        REFLECTION_PROPERTIES_BEGIN
+            REFLECTION_PROPERTY(m_Age)
+        REFLECTION_PROPERTIES_END
+    REFLECTION_CLASS_END
+
+public:
+    int m_Age = 18;
+};
+
 void ShowProperty(const size_t Index, RObject& Object, const RProperty& Property)
 {
     const RClass& Class = Object.GetClass();
@@ -93,7 +105,7 @@ void ShowProperties(RObject& Object)
 
 int main(void)
 {
-    std::shared_ptr<RPlayer> Player = std::make_shared<RPlayer>();
+    std::shared_ptr<RSubPlayer> Player = std::make_shared<RSubPlayer>();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
     InitWindow(1920, 1080, "MyProject");
