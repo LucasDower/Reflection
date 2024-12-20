@@ -1,3 +1,3 @@
 project(Reflection)
 
-add_subdirectory(Examples/AsteroidGame)
+add_subdirectory(Examples/SimpleGUI)
