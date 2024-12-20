@@ -1,4 +1,4 @@
 .vs
-Examples/AsteroidGame/out
-Examples/AsteroidGame/External
+Examples/*/out
+Examples/*/External
 out
