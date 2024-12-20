@@ -30,6 +30,8 @@ public:
 };
 ```
 
+![](Resources/SimpleGUI_0.png)
+
 `REFLECTION_CLASS_BEGIN` expects the first argument to be the name of the class being reflected and the second argument as the parent `RClass`. Properties that should be reflected require the corresponding `REFLECTION_PROPERTY`.
 
 All classes with reflection steup have include a static `RClass` accessible statically with `RClass::StaticGetClass()` or dynamically with `GetClass()`.
@@ -116,3 +118,5 @@ public:
     float m_Experience = 0.0f;
 };
 ```
+
+![](Resources/SimpleGUI_1.png)
