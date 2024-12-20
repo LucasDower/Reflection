@@ -120,3 +120,37 @@ public:
 ```
 
 ![](Resources/SimpleGUI_1.png)
+
+You can also use RObject's as properties, for example:
+
+```cpp
+class RVector2f : public RObject
+{
+    REFLECTION_CLASS_BEGIN(RVector2f, RObject)
+        REFLECTION_PROPERTIES_BEGIN
+            REFLECTION_PROPERTY(m_X)
+            REFLECTION_PROPERTY(m_Y)
+        REFLECTION_PROPERTIES_END
+    REFLECTION_CLASS_END
+
+public:
+    float m_X = 0;
+    float m_Y = 0;
+};
+
+class RPhysicsBody : public RObject
+{
+    REFLECTION_CLASS_BEGIN(RPhysicsBody, RObject)
+        REFLECTION_PROPERTIES_BEGIN
+            REFLECTION_PROPERTY(m_Position)
+            REFLECTION_PROPERTY(m_Velocity)
+        REFLECTION_PROPERTIES_END
+    REFLECTION_CLASS_END
+
+public:
+    RVector2f m_Position;
+    RVector2f m_Velocity;
+};
+```
+
+![](Resources/SimpleGUI_2.png)

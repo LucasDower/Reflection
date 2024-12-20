@@ -5,6 +5,8 @@
 #include <string>
 #include <stdint.h>
 
+class RObject;
+
 class RProperty final
 {
 public:
@@ -23,6 +25,7 @@ public:
 		UnsignedLongLong,
 		Float,
 		Double,
+		RObject,
 	};
 
 	template <typename T>
@@ -79,6 +82,10 @@ public:
 		else if constexpr (std::is_same<T, double>())
 		{
 			return Type::Double;
+		}
+		else if constexpr (std::is_base_of<RObject, T>())
+		{
+			return Type::RObject;
 		}
 		else
 		{
@@ -139,6 +146,10 @@ public:
 		else if (InType == Type::Double)
 		{
 			return "Double";
+		}
+		else if (InType == Type::RObject)
+		{
+			return "RObject";
 		}
 		else
 		{
